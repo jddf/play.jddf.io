@@ -1,0 +1,40 @@
+$mdc-theme-primary: #2e7d32;
+$mdc-theme-secondary: #fff8e1;
+$mdc-theme-on-primary: #ffffff;
+$mdc-theme-on-secondary: #000000;
+
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Mono:300,400,500");
+@import "@material/react-top-app-bar/index.scss";
+@import "@material/react-material-icon/index.scss";
+@import "@material/react-layout-grid/index.scss";
+@import "@material/react-typography/index.scss";
+@import "@material/react-chips/index.scss";
+@import "@material/data-table/mdc-data-table";
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: $mdc-theme-secondary;
+}
+
+.PlayApp__Headline {
+  margin: 0 0 12px 0;
+}
+
+.PlayApp__SecondRow {
+  margin-top: 24px;
+}
+
+.PlayApp__ErrorTable {
+  width: 100%;
+}
+
+.PlayApp__ErrorToken {
+  font-family: "Roboto Mono", monospace;
+  background-color: #efefef;
+  padding: 2px;
+  border-radius: 2px;
+}
