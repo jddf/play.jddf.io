@@ -38,6 +38,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "./dist"),
+    publicPath: "/",
     filename: "[name].bundle.js"
   },
   plugins: [
@@ -45,5 +46,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: "JDDF Playground | Schema Language for JSON"
     })
-  ]
+  ],
+  devServer: {
+    historyApiFallback: true
+  }
 };

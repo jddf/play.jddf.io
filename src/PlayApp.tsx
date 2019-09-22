@@ -9,10 +9,25 @@ import TopAppBar, {
 import MaterialIcon from "@material/react-material-icon";
 import { Cell, Grid, Row } from "@material/react-layout-grid";
 import { Headline6 } from "@material/react-typography";
+import { Snackbar } from "@material/react-snackbar";
 import { Editor } from "./Editor";
 import { Validator, compileSchema } from "@jddf/jddf";
 import "./PlayApp.scss";
 import { ValidationError } from "@jddf/jddf/lib/Validator";
+import axios from "axios";
+import { RouteComponentProps, navigate } from "@reach/router";
+
+const SHORT_URL_SERVICE =
+  "https://us-central1-jddf-1569094432055.cloudfunctions.net/function-1";
+
+interface ShortURLServiceGetResponse {
+  schema: string;
+  instance: string;
+}
+
+interface ShortURLServicePostResponse {
+  id: string;
+}
 
 const INITIAL_SCHEMA = `{
   "properties": {
@@ -34,12 +49,50 @@ const INITIAL_INSTANCE = `{
   "unexpected property": "foo"
 }`;
 
-export function PlayApp() {
+interface Props {
+  shareId?: string;
+}
+
+export function PlayApp({ shareId }: Props & RouteComponentProps) {
   const [schema, setSchema] = useState(INITIAL_SCHEMA);
   const [instance, setInstance] = useState(INITIAL_INSTANCE);
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [sharedIDs, setSharedIDs] = useState<string[]>([]);
 
   useEffect(() => {
+    // On mount, attempt to pull down based on a shared URL, if there is one.
+    const fetchShare = async () => {
+      if (shareId !== undefined) {
+        const {
+          data: { schema, instance }
+        } = await axios.get<ShortURLServiceGetResponse>(SHORT_URL_SERVICE, {
+          params: { id: shareId }
+        });
+
+        setSchema(schema);
+        setInstance(instance);
+      }
+    };
+
+    fetchShare();
+  }, [shareId]);
+
+  const createShareURL = async () => {
+    // Create a share-able URL using the backend, and redirect to it
+    // immediately.
+    const {
+      data: { id }
+    } = await axios.post<ShortURLServicePostResponse>(SHORT_URL_SERVICE, {
+      schema,
+      instance
+    });
+
+    setSharedIDs([...sharedIDs, id]);
+    navigate(`/p/${id}`);
+  };
+
+  useEffect(() => {
+    // Recompute validation errors whenever the schema or instance changes.
     try {
       const validator = new Validator();
       setErrors(
@@ -61,10 +114,21 @@ export function PlayApp() {
             </TopAppBarIcon>
             <TopAppBarTitle>JDDF Playground</TopAppBarTitle>
           </TopAppBarSection>
-          <TopAppBarSection align="end" role="toolbar"></TopAppBarSection>
+          <TopAppBarSection align="end" role="toolbar">
+            <TopAppBarIcon actionItem>
+              <MaterialIcon icon="share" onClick={createShareURL} />
+            </TopAppBarIcon>
+          </TopAppBarSection>
         </TopAppBarRow>
       </TopAppBar>
       <TopAppBarFixedAdjust>
+        {sharedIDs.map(id => (
+          <Snackbar
+            key={id}
+            message="You've been redirected to a URL you can share."
+            actionText="dismiss"
+          />
+        ))}
         <Grid>
           <Row>
             <Cell columns={6}>
@@ -137,8 +201,8 @@ function ErrorPath({ path }: { path: string[] }) {
   return (
     <>
       {first}
-      {rest.map(token => (
-        <> / {token}</>
+      {rest.map((token, index) => (
+        <span key={index}> / {token}</span>
       ))}
     </>
   );
